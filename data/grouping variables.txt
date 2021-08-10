@@ -1,0 +1,10 @@
+﻿Stream	Basin	Plateu	Site	Status
+AB_R	Araticum	Bacaba	BACA02	Pristine
+ABC_R	Araticum	BelaCruz	BCA02	Pristine
+SC_R	Saraca	Cipo	CIS2-4	Pristine
+SMB_R	Saraca	MonteBranco	MBSE2-2	Pristine
+SMB_R2	Saraca	MonteBranco	MBSW2-1	Pristine
+SA_S1	Saraca	Almeidas	Almeidas01	Disturbed
+SA_S2	Saraca	Almeidas	Almeidas02	Disturbed
+AA_S	Araticum	Aviso	Aviso01	Disturbed
+SS_S	Saraca	Saraca	Saracazinho01	Disturbed

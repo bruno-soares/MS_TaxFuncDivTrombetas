@@ -1,0 +1,10 @@
+﻿Amostra	%Cha	%Cyp	%Per	%Sil	%Gym+Syn
+AB_R	33	8	42	17	0
+ABC_R	47	30	21	2	0
+SC_R	19	62	9	5	5
+SMB_R	31	38	20	9	1
+SMB_R2	33	23	27	14	2
+SA_S1	9	69	18	3	1
+SA_S2	52	24	24	0	0
+AA_S	43	26	26	2	2
+SS_S	39	17	35	0	9
