@@ -1,7 +1,7 @@
 # Data analysis for the manuscript: "Taxonomic diversity is more sensitive than functional diversity to indicate mild mining impacts in stream fish assemblages"
 
 ## Authors
-Nathália C. S. Silva, Bruno E. Soares; Rafael P. Leitão, Fabrício B. Teresa, Érica P. Caramaschi, Miriam P. Albrecht¹
+Nathália C. S. Silva, Bruno E. Soares; Fabrício B. Teresa, Érica P. Caramaschi, Miriam P. Albrecht¹
 
 ## Published in
 Preprint not available. Submitted to Aquatic Ecology.
