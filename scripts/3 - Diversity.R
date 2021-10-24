@@ -2,6 +2,7 @@
 library(vegan)
 library(SYNCSA)
 library(dendextend)
+library(lawstat)
 
 # Importing the dataset #
 traits=read.table("data/traits.txt",header=T,row.names=1)
@@ -12,31 +13,34 @@ abund_ord=read.table("data/ab.rel_orders.txt",header=T,row.names=1)
 # taxonomic diversity #
 S=specnumber(abund)
 H=diversity(abund)
-J=H/log(S)
-D <- diversity(abund, "simpson")
-taxonomic=cbind(S,H,J, D)
+taxonomic=cbind(S,H)
 write.table(taxonomic,"results/Taxonomic Diversity.txt")
 GerTax2=cbind(taxonomic,groups)
 
-t.test(S~Status, data=GerTax2)
-t.test(H~Status, data=GerTax2)
-t.test(D~Status, data=GerTax2)
-t.test(J~Status, data=GerTax2)
+# Levene test for taxonomic structure
+levene.test(GerTax2$S,GerTax2$Status)
+levene.test(GerTax2$H,GerTax2$Status)
+t.test(S~Status, data=GerTax2,var.equal=TRUE)
+t.test(H~Status, data=GerTax2,var.equal=TRUE)
 
 boxplot(S~Status, data=GerTax2, ylab="Riqueza de espécies (S)",  cex.axis=2)
 boxplot(H~Status, data=GerTax2, ylab="Diversidade de Shannon (H')",  cex.axis=2)
-boxplot(D~Status, data=GerTax2, ylab="Diversidade de Simpson (D')",  cex.axis=2)
-boxplot(J~Status, data=GerTax2, ylab="Equabilidade de Pielou (J)",  cex.axis=2)
-
 
 # Taxonomic composition #
 abdOrd=cbind(abund_ord, groups)
 
-t.test(X.Cha~Status, data=abdOrd)
-t.test(X.Cyp~Status, data=abdOrd)
-t.test(X.Per~Status, data=abdOrd)
-t.test(X.Sil~Status, data=abdOrd)
-t.test(X.Gym.Syn~Status, data=abdOrd)
+# Levene test for taxonomic composition
+levene.test(abdOrd$X.Cha,abdOrd$Status)
+levene.test(abdOrd$X.Cyp,abdOrd$Status)
+levene.test(abdOrd$X.Per,abdOrd$Status)
+levene.test(abdOrd$X.Sil,abdOrd$Status) #marginally significant
+levene.test(abdOrd$X.Gym,abdOrd$Status)
+
+t.test(X.Cha~Status, data=abdOrd,var.equal=TRUE)
+t.test(X.Cyp~Status, data=abdOrd,var.equal=TRUE)
+t.test(X.Per~Status, data=abdOrd,var.equal=TRUE)
+t.test(X.Sil~Status, data=abdOrd,var.equal=TRUE)
+t.test(X.Gym.Syn~Status, data=abdOrd,var.equal=TRUE)
 
 par(mfrow=c(2,3))
 boxplot(X.Cha~factor(Status), data=abdOrd, ylab="%Cha", outline=F, cex.axis=1.5, cex.lab=1.5)
@@ -559,33 +563,23 @@ multidimFD<-function(coord, weight, check_species_pool=TRUE, verb=TRUE,
 
 funcdiv<-multidimFD(QFS$details_funct_space$mat_coord[,1:3],as.matrix(abund))
 funcdiv<-funcdiv[,c(15:20)]
-Rao<-rao.diversity(abund,phylodist=as.matrix(dist.func))$PhyRao
-FRedundancy<-rao.diversity(abund,phylodist=as.matrix(dist.func))$PhyRedundancy
-FGR<-apply(abund,1,function(x) length(unique(cutree(prune(b,names(which(x==0))),h=0.3))))
-funcdiv<-cbind(funcdiv,Rao,FRedundancy,FGR)
+funcdiv<-as.data.frame(cbind(funcdiv,FRedundancy))
 write.table(funcdiv,"results/Functional diversity.txt")
 
-par(mfrow=c(2,5))
-boxplot(funcdiv$FRic~groups$Status,ylab="FRic",cex.axis=2, outline=F)
-boxplot(funcdiv$FDiv~groups$Status,ylab="FDiv",cex.axis=2, outline=F)
-boxplot(funcdiv$FEve~groups$Status,ylab="FEve",cex.axis=2, outline=F)
-boxplot(funcdiv$FDis~groups$Status,ylab="FDis",cex.axis=2, outline=F)
-boxplot(funcdiv$FOri~groups$Status,ylab="FOri",cex.axis=2, outline=F)
-boxplot(funcdiv$FSpe~groups$Status,ylab="FSpe",cex.axis=2, outline=F)
-boxplot(funcdiv$FRedundancy~groups$Status,ylab="Functional Redundancy",cex.axis=2, outline=F)
-boxplot(funcdiv$Rao~groups$Status,ylab="Rao",cex.axis=2, outline=F)
-boxplot(funcdiv$FGR~groups$Status, ylab="FGR",cex.axis=2, outline=F)
-dev.off()
+# Levene test for functional structure
+levene.test(funcdiv$FRic,groups$Status)
+levene.test(funcdiv$FDiv,groups$Status)
+levene.test(funcdiv$FEve,groups$Status)
+levene.test(funcdiv$FDis,groups$Status) #marginally significant
+levene.test(funcdiv$FOri,groups$Status)
+levene.test(funcdiv$FSpe,groups$Status)
 
-t.test(funcdiv$FRic~groups$Status)
-t.test(funcdiv$FDiv~groups$Status)
-t.test(funcdiv$FEve~groups$Status)
-t.test(funcdiv$FDis~groups$Status)
-t.test(funcdiv$FOri~groups$Status)
-t.test(funcdiv$FSpe~groups$Status)
-t.test(funcdiv$FRedundancy~groups$Status)
-t.test(funcdiv$Rao~groups$Status)
-t.test(funcdiv$FGR~groups$Status)
+t.test(funcdiv$FRic~groups$Status,var.equal=TRUE)
+t.test(funcdiv$FDiv~groups$Status,var.equal=TRUE)
+t.test(funcdiv$FEve~groups$Status,var.equal=TRUE)
+t.test(funcdiv$FDis~groups$Status,var.equal=TRUE)
+t.test(funcdiv$FOri~groups$Status,var.equal=TRUE)
+t.test(funcdiv$FSpe~groups$Status,var.equal=TRUE)
 
 
 # Functional composition #
@@ -599,21 +593,22 @@ boxplot(funccomp$FIde_PC2~groups$Status,ylab="FIde_PC2",cex.axis=2, outline=F)
 boxplot(funccomp$FIde_PC3~groups$Status,ylab="FIde_PC3",cex.axis=2, outline=F)
 dev.off()
 
-t.test(funccomp$FIde_PC1~groups$Status)
-t.test(funccomp$FIde_PC2~groups$Status)
-t.test(funccomp$FIde_PC3~groups$Status)
+# Levene test for functional composition
+levene.test(funccomp$FIde_PC1,groups$Status)
+levene.test(funccomp$FIde_PC2,groups$Status)
+levene.test(funccomp$FIde_PC3,groups$Status)
+
+t.test(funccomp$FIde_PC1~groups$Status,var.equal=TRUE)
+t.test(funccomp$FIde_PC2~groups$Status,var.equal=TRUE)
+t.test(funccomp$FIde_PC3~groups$Status,var.equal=TRUE)
 
 
 # t test for all indices #
 stats_indices<-data.frame()
 a<-t.test(S~Status, data=GerTax2)
 b<-t.test(H~Status, data=GerTax2)
-c<-t.test(D~Status, data=GerTax2)
-d<-t.test(J~Status, data=GerTax2)
 stats_indices<-rbind(stats_indices,c(a$statistic,a$parameter,a$p.value))
 stats_indices<-rbind(stats_indices,c(b$statistic,b$parameter,b$p.value))
-stats_indices<-rbind(stats_indices,c(c$statistic,c$parameter,c$p.value))
-stats_indices<-rbind(stats_indices,c(d$statistic,d$parameter,d$p.value))
 colnames(stats_indices)<-c("t","DF","p-value")
 
 e<-t.test(X.Cha~Status, data=abdOrd)
@@ -633,18 +628,12 @@ l<-t.test(funcdiv$FEve~groups$Status)
 m<-t.test(funcdiv$FDis~groups$Status)
 n<-t.test(funcdiv$FOri~groups$Status)
 o<-t.test(funcdiv$FSpe~groups$Status)
-p<-t.test(funcdiv$FRedundancy~groups$Status)
-q<-t.test(funcdiv$Rao~groups$Status)
-r<-t.test(funcdiv$FGR~groups$Status)
 stats_indices<-rbind(stats_indices,c(j$statistic,j$parameter,j$p.value))
 stats_indices<-rbind(stats_indices,c(k$statistic,k$parameter,k$p.value))
 stats_indices<-rbind(stats_indices,c(l$statistic,l$parameter,l$p.value))
 stats_indices<-rbind(stats_indices,c(m$statistic,m$parameter,m$p.value))
 stats_indices<-rbind(stats_indices,c(n$statistic,n$parameter,n$p.value))
 stats_indices<-rbind(stats_indices,c(o$statistic,o$parameter,o$p.value))
-stats_indices<-rbind(stats_indices,c(p$statistic,p$parameter,p$p.value))
-stats_indices<-rbind(stats_indices,c(q$statistic,q$parameter,q$p.value))
-stats_indices<-rbind(stats_indices,c(r$statistic,r$parameter,r$p.value))
 
 s<-t.test(funccomp$FIde_PC1~groups$Status)
 t<-t.test(funccomp$FIde_PC2~groups$Status)
@@ -652,9 +641,9 @@ u<-t.test(funccomp$FIde_PC3~groups$Status)
 stats_indices<-rbind(stats_indices,c(s$statistic,s$parameter,s$p.value))
 stats_indices<-rbind(stats_indices,c(t$statistic,t$parameter,t$p.value))
 stats_indices<-rbind(stats_indices,c(u$statistic,u$parameter,u$p.value))
-row.names(stats_indices)<-c("S","H","D","J","Cha_CPUE","Cyp_CPUE","Per_CPUE",
+row.names(stats_indices)<-c("S","H","Cha_CPUE","Cyp_CPUE","Per_CPUE",
                             "Sil_CPUE","Gym.Syn_CPUE","FRic","FDiv","FEve","FDis",
-                            "FOri","FSpe","FRedundancy","Rao","FGR","FIde_PC1",
+                            "FOri","FSpe","FIde_PC1",
                             "FIde_PC2","FIde_PC3")
 stats_indices
 write.table(stats_indices,"results/Statistical tests.txt")
@@ -668,21 +657,17 @@ boxplot(X.Sil~factor(Status),data=abdOrd,xlab=NULL,ylab="% Siluriformes",cex.axi
 text(0.5,16.7,paste('B'))
 dev.off()
 
-# Supplementary Figure 5 #
-png("figures/Supplementary Figure 5.png",units="cm",width = 16,height=14,res=600)
-par(mfrow=c(2,2),mar=c(4,4,2,2))
+# Supplementary Figure 4 #
+png("figures/Supplementary Figure 4.png",units="cm",width = 16,height=10,res=600)
+par(mfrow=c(1,2),mar=c(4,4,2,2))
 boxplot(S~Status, data=GerTax2,xlab=NULL,ylab="Richness",cex.axis=0.8,cex.lab=0.8)
 text(0.5,11.90,paste('A'))
 boxplot(H~Status, data=GerTax2,xlab=NULL,ylab="Shannon's Diversity",cex.axis=0.8,cex.lab=0.8)
 text(0.5,1.72,paste('B'))
-boxplot(D~Status, data=GerTax2,xlab=NULL,ylab="Simpson's Diversity",cex.axis=0.8,cex.lab=0.8)
-text(0.5,0.77,paste('C'))
-boxplot(J~Status, data=GerTax2,xlab=NULL,ylab="Pielou's evenness",cex.axis=0.8,cex.lab=0.8)
-text(0.5,0.79,paste('D'))
 dev.off()
 
-# Supplementary Figure 6 #
-png("figures/Supplementary Figure 6.png",units="cm",width=16,height=12,res=600)
+# Supplementary Figure 5 #
+png("figures/Supplementary Figure 5.png",units="cm",width=16,height=12,res=600)
 par(mfrow=c(2,3),mar=c(3,4,2,2))
 boxplot(X.Cha~factor(Status),data=abdOrd,xlab=NULL,ylab="% Characiformes",cex.axis=0.8,cex.lab=0.8)
 text(0.52,52,paste('A'))
@@ -696,9 +681,9 @@ boxplot(X.Sil~factor(Status),data=abdOrd,xlab=NULL,ylab="% Siluriformes",cex.axi
 text(0.52,17,paste('E'))
 dev.off()
 
-# Supplementary Figure 7 #
-png("figures/Supplementary Figure 7.png",units="cm",width=16,height=18,res=600)
-par(mfrow=c(3,3),mar=c(3,4,2,2))
+# Supplementary Figure 6 #
+png("figures/Supplementary Figure 6.png",units="cm",width=16,height=18,res=600)
+par(mfrow=c(3,2),mar=c(3,4,2,2))
 boxplot(funcdiv$FRic~groups$Status,xlab=NULL,ylab="Functional Richness",cex.axis=0.8,cex.lab=0.8)
 text(0.52,0.56,paste('A'))
 boxplot(funcdiv$FDiv~groups$Status,xlab=NULL,ylab="Functional Divergence",cex.axis=0.8,cex.lab=0.8)
@@ -711,16 +696,10 @@ boxplot(funcdiv$FOri~groups$Status,xlab=NULL,ylab="Functional Originality",cex.a
 text(0.52,0.357,paste('E'))
 boxplot(funcdiv$FSpe~groups$Status,xlab=NULL,ylab="Functional Specialization",cex.axis=0.8,cex.lab=0.8)
 text(0.52,0.55,paste('F'))
-boxplot(funcdiv$FRedundancy~groups$Status,xlab=NULL,ylab="Functional Redundancy",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.405,paste('G'))
-boxplot(funcdiv$Rao~groups$Status,xlab=NULL,ylab="Rao's Quadratic Entropy",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.45,paste('H'))
-boxplot(funcdiv$FGR~groups$Status,xlab=NULL,ylab="Functional Group Richness",cex.axis=0.8,cex.lab=0.8)
-text(0.52,7.9,paste('I'))
 dev.off()
 
-# Supplementary Figure 8 #
-png("figures/Supplementary Figure 8.png",units="cm",width = 16,height=8,res=600)
+# Supplementary Figure 7 #
+png("figures/Supplementary Figure 7.png",units="cm",width = 16,height=8,res=600)
 par(mfrow=c(1,3),mar=c(4,4,2,2))
 boxplot(funccomp$FIde_PC1~groups$Status,xlab=NULL,ylab="CWM (PC1)",cex.axis=0.8,cex.lab=0.8)
 text(0.52,0.073,paste('A'))
@@ -729,3 +708,18 @@ text(0.52,0.1815,paste('B'))
 boxplot(funccomp$FIde_PC3~groups$Status,xlab=NULL,ylab="CWM (PC3)",cex.axis=0.8,cex.lab=0.8)
 text(0.52,-0.007,paste('C'))
 dev.off()
+
+
+
+
+# Richness effects on FRic and FOri #
+png("figures/Supplementary Figure 8.png",units="cm",width = 16,height=10,res=600)
+par(mfrow=c(1,2),mar=c(4,4,2,2))
+plot(funcdiv$FOri~S,xlab="Species Richness",ylab="Functional Originality")
+text(6.2,0.36,paste('B'))
+plot(funcdiv$FRic~S,xlab="Species Richness",ylab="Functional Richness")
+text(6.2,0.57,paste('A'))
+dev.off()
+
+summary(lm(funcdiv$FRic~S))
+summary(lm(funcdiv$FOri~S))

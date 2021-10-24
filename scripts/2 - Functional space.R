@@ -161,15 +161,10 @@ quality_funct_space_fromdist <- function( dist_funct,  nbdim=7,   plot="quality_
   
 } # end of function quality_funct_space_fromdist
 
-png("figures/Supplementary Figure 2.png")
-plot(hclust(dist.func,method="average"),hang=-1)
-abline(h=0.3,lty=2,col="red")
-dev.off()
-
 QFS<-quality_funct_space_fromdist(dist.func, nbdim=10)
 QFS$meanSD
 which.min(QFS$meanSD)
-png("figures/Supplementary Figure 3.png")
+png("figures/Supplementary Figure 2.png")
 plot(1:10,QFS$meanSD[1:10],pch=16,cex=1.3,main="Quality of the functional space",xlab="Axes",ylab="meanSD")
 abline(h=0.01,col="gray",lwd=2,lty=2)
 dev.off()
@@ -181,7 +176,7 @@ pcoa(dist.func)
 write.table(cbind(envfit_pcoa$vectors$arrows,envfit_pcoa$vectors$r,envfit_pcoa$vectors$pvals),
             "results/Supplementary Table 2.txt")
 
-png("figures/Supplementary Figure 4.png",height=30,width=12,units="cm",res=600)
+png("figures/Supplementary Figure 3.png",height=30,width=12,units="cm",res=600)
 par(mfrow=c(3,1),mar=c(4,4,2,2))
 plot(coords_pcoa$PC2~coords_pcoa$PC1,col="white",xlab="PCoA 1 (38.81%)",ylab="PCoA 2 (15.74%)")
 text(coords_pcoa$PC2~coords_pcoa$PC1,labels=rownames(coords_pcoa),cex=1)
