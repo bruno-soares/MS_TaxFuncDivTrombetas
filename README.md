@@ -7,7 +7,7 @@ Nathália C. S. Silva, Bruno E. Soares; Fabrício B. Teresa, Érica P. Caramasch
 Preprint not available. Submitted to Aquatic Ecology.
 
 ## To cite this data
-Citation and doi for citing this data and coding are available by Zenodo: https://zenodo.org/record/4118631
+Citation and doi for citing this data and coding are available by Zenodo: https://zenodo.org/record/5595438
 
 ## Description
 Data and script to analyze the indirect effects of the mining activities at the National Forest of Saracá-Taquera, Trombetas River Basin, Central Amazon. These results are discussed in the manuscript "Taxonomic diversity is more sensitive than functional diversity to indicate mild mining impacts in stream fish assemblages", submitted to Aquatic Ecology.
