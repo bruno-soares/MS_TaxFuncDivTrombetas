@@ -3,6 +3,9 @@ library(vegan)
 library(SYNCSA)
 library(dendextend)
 library(lawstat)
+library(ggplot2)
+library(gridExtra)
+library(MKinfer)
 
 # Importing the dataset #
 traits=read.table("data/traits.txt",header=T,row.names=1)
@@ -17,30 +20,20 @@ taxonomic=cbind(S,H)
 write.table(taxonomic,"results/Taxonomic Diversity.txt")
 GerTax2=cbind(taxonomic,groups)
 
-# Levene test for taxonomic structure
-levene.test(GerTax2$S,GerTax2$Status)
-levene.test(GerTax2$H,GerTax2$Status)
-t.test(S~Status, data=GerTax2,var.equal=TRUE)
-t.test(H~Status, data=GerTax2,var.equal=TRUE)
+# Nonparametric bootstrap t-test
+boot.t.test(GerTax2$S[1:5],GerTax2$S[6:9],var.equal=TRUE)
+boot.t.test(GerTax2$H[1:5],GerTax2$H[6:9],var.equal=TRUE)
 
-boxplot(S~Status, data=GerTax2, ylab="Riqueza de espécies (S)",  cex.axis=2)
-boxplot(H~Status, data=GerTax2, ylab="Diversidade de Shannon (H')",  cex.axis=2)
 
 # Taxonomic composition #
 abdOrd=cbind(abund_ord, groups)
 
 # Levene test for taxonomic composition
-levene.test(abdOrd$X.Cha,abdOrd$Status)
-levene.test(abdOrd$X.Cyp,abdOrd$Status)
-levene.test(abdOrd$X.Per,abdOrd$Status)
-levene.test(abdOrd$X.Sil,abdOrd$Status) #marginally significant
-levene.test(abdOrd$X.Gym,abdOrd$Status)
-
-t.test(X.Cha~Status, data=abdOrd,var.equal=TRUE)
-t.test(X.Cyp~Status, data=abdOrd,var.equal=TRUE)
-t.test(X.Per~Status, data=abdOrd,var.equal=TRUE)
-t.test(X.Sil~Status, data=abdOrd,var.equal=TRUE)
-t.test(X.Gym.Syn~Status, data=abdOrd,var.equal=TRUE)
+boot.t.test(abdOrd$X.Cha[1:5],abdOrd$X.Cha[6:9])
+boot.t.test(abdOrd$X.Cyp[1:5],abdOrd$X.Cha[6:9])
+boot.t.test(abdOrd$X.Per[1:5],abdOrd$X.Cha[6:9])
+boot.t.test(abdOrd$X.Sil[1:5],abdOrd$X.Cha[6:9])
+boot.t.test(abdOrd$X.Gym.Syn[1:5],abdOrd$X.Cha[6:9])
 
 par(mfrow=c(2,3))
 boxplot(X.Cha~factor(Status), data=abdOrd, ylab="%Cha", outline=F, cex.axis=1.5, cex.lab=1.5)
@@ -567,19 +560,12 @@ funcdiv<-as.data.frame(cbind(funcdiv,FRedundancy))
 write.table(funcdiv,"results/Functional diversity.txt")
 
 # Levene test for functional structure
-levene.test(funcdiv$FRic,groups$Status)
-levene.test(funcdiv$FDiv,groups$Status)
-levene.test(funcdiv$FEve,groups$Status)
-levene.test(funcdiv$FDis,groups$Status) #marginally significant
-levene.test(funcdiv$FOri,groups$Status)
-levene.test(funcdiv$FSpe,groups$Status)
-
-t.test(funcdiv$FRic~groups$Status,var.equal=TRUE)
-t.test(funcdiv$FDiv~groups$Status,var.equal=TRUE)
-t.test(funcdiv$FEve~groups$Status,var.equal=TRUE)
-t.test(funcdiv$FDis~groups$Status,var.equal=TRUE)
-t.test(funcdiv$FOri~groups$Status,var.equal=TRUE)
-t.test(funcdiv$FSpe~groups$Status,var.equal=TRUE)
+boot.t.test(funcdiv$FRic[1:5],funcdiv$FRic[6:9])
+boot.t.test(funcdiv$FDiv[1:5],funcdiv$FDiv[6:9])
+boot.t.test(funcdiv$FEve[1:5],funcdiv$FEve[6:9])
+boot.t.test(funcdiv$FDis[1:5],funcdiv$FDis[6:9])
+boot.t.test(funcdiv$FOri[1:5],funcdiv$FOri[6:9])
+boot.t.test(funcdiv$FSpe[1:5],funcdiv$FSpe[6:9])
 
 
 # Functional composition #
@@ -594,119 +580,276 @@ boxplot(funccomp$FIde_PC3~groups$Status,ylab="FIde_PC3",cex.axis=2, outline=F)
 dev.off()
 
 # Levene test for functional composition
-levene.test(funccomp$FIde_PC1,groups$Status)
-levene.test(funccomp$FIde_PC2,groups$Status)
-levene.test(funccomp$FIde_PC3,groups$Status)
+boot.t.test(funccomp$FIde_PC1[1:5],funccomp$FIde_PC1[6:9])
+boot.t.test(funccomp$FIde_PC2[1:5],funccomp$FIde_PC2[6:9])
+boot.t.test(funccomp$FIde_PC3[1:5],funccomp$FIde_PC3[6:9])
 
-t.test(funccomp$FIde_PC1~groups$Status,var.equal=TRUE)
-t.test(funccomp$FIde_PC2~groups$Status,var.equal=TRUE)
-t.test(funccomp$FIde_PC3~groups$Status,var.equal=TRUE)
-
-
-# t test for all indices #
-stats_indices<-data.frame()
-a<-t.test(S~Status, data=GerTax2)
-b<-t.test(H~Status, data=GerTax2)
-stats_indices<-rbind(stats_indices,c(a$statistic,a$parameter,a$p.value))
-stats_indices<-rbind(stats_indices,c(b$statistic,b$parameter,b$p.value))
-colnames(stats_indices)<-c("t","DF","p-value")
-
-e<-t.test(X.Cha~Status, data=abdOrd)
-f<-t.test(X.Cyp~Status, data=abdOrd)
-g<-t.test(X.Per~Status, data=abdOrd)
-h<-t.test(X.Sil~Status, data=abdOrd)
-i<-t.test(X.Gym.Syn~Status, data=abdOrd)
-stats_indices<-rbind(stats_indices,c(e$statistic,e$parameter,e$p.value))
-stats_indices<-rbind(stats_indices,c(f$statistic,f$parameter,f$p.value))
-stats_indices<-rbind(stats_indices,c(g$statistic,g$parameter,g$p.value))
-stats_indices<-rbind(stats_indices,c(h$statistic,h$parameter,h$p.value))
-stats_indices<-rbind(stats_indices,c(i$statistic,i$parameter,i$p.value))
-
-j<-t.test(funcdiv$FRic~groups$Status)
-k<-t.test(funcdiv$FDiv~groups$Status)
-l<-t.test(funcdiv$FEve~groups$Status)
-m<-t.test(funcdiv$FDis~groups$Status)
-n<-t.test(funcdiv$FOri~groups$Status)
-o<-t.test(funcdiv$FSpe~groups$Status)
-stats_indices<-rbind(stats_indices,c(j$statistic,j$parameter,j$p.value))
-stats_indices<-rbind(stats_indices,c(k$statistic,k$parameter,k$p.value))
-stats_indices<-rbind(stats_indices,c(l$statistic,l$parameter,l$p.value))
-stats_indices<-rbind(stats_indices,c(m$statistic,m$parameter,m$p.value))
-stats_indices<-rbind(stats_indices,c(n$statistic,n$parameter,n$p.value))
-stats_indices<-rbind(stats_indices,c(o$statistic,o$parameter,o$p.value))
-
-s<-t.test(funccomp$FIde_PC1~groups$Status)
-t<-t.test(funccomp$FIde_PC2~groups$Status)
-u<-t.test(funccomp$FIde_PC3~groups$Status)
-stats_indices<-rbind(stats_indices,c(s$statistic,s$parameter,s$p.value))
-stats_indices<-rbind(stats_indices,c(t$statistic,t$parameter,t$p.value))
-stats_indices<-rbind(stats_indices,c(u$statistic,u$parameter,u$p.value))
-row.names(stats_indices)<-c("S","H","Cha_CPUE","Cyp_CPUE","Per_CPUE",
-                            "Sil_CPUE","Gym.Syn_CPUE","FRic","FDiv","FEve","FDis",
-                            "FOri","FSpe","FIde_PC1",
-                            "FIde_PC2","FIde_PC3")
-stats_indices
-write.table(stats_indices,"results/Statistical tests.txt")
-
-# Figure 2 #
-png("figures/Figure 2.png",units="cm",width = 18,height=10,res=600)
-par(mfrow=c(1,2))
-boxplot(S~Status, data=GerTax2,xlab=NULL,ylab="Richness",cex.axis=0.8,cex.lab=0.8)
-text(0.5,11.91,paste('A'))
-boxplot(X.Sil~factor(Status),data=abdOrd,xlab=NULL,ylab="% Siluriformes",cex.axis=0.8,cex.lab=0.8)
-text(0.5,16.7,paste('B'))
-dev.off()
 
 # Supplementary Figure 4 #
+Richness<-ggplot(data=GerTax2)+
+  geom_boxplot(mapping=aes(y=S,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=S,x=factor(Status)))+
+  ylab("Richness")+
+  xlab(NULL)+
+  geom_text(aes(y=11.9,x=0.5,label=paste('A'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+Shannon<-ggplot(data=GerTax2)+
+  geom_boxplot(mapping=aes(y=H,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=H,x=factor(Status)))+
+  ylab("Shannon's diversity")+
+  xlab(NULL)+
+  geom_text(aes(y=1.72,x=0.5,label=paste('B'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
 png("figures/Supplementary Figure 4.png",units="cm",width = 16,height=10,res=600)
-par(mfrow=c(1,2),mar=c(4,4,2,2))
-boxplot(S~Status, data=GerTax2,xlab=NULL,ylab="Richness",cex.axis=0.8,cex.lab=0.8)
-text(0.5,11.90,paste('A'))
-boxplot(H~Status, data=GerTax2,xlab=NULL,ylab="Shannon's Diversity",cex.axis=0.8,cex.lab=0.8)
-text(0.5,1.72,paste('B'))
+grid.arrange(Richness,Shannon,nrow=1)
 dev.off()
+
+
+
 
 # Supplementary Figure 5 #
+Characiformes<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Cha,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Cha,x=factor(Status)))+
+  ylab("% Characiformes")+
+  xlab(NULL)+
+  geom_text(aes(y=52,x=0.52,label=paste('A'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+Cyprinodontiformes<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Cyp,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Cyp,x=factor(Status)))+
+  ylab("% Cyprinodontiformes")+
+  xlab(NULL)+
+  geom_text(aes(y=69,x=0.52,label=paste('B'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+Gymnotiformes<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Gym.Syn,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Gym.Syn,x=factor(Status)))+
+  ylab("% Gymnotiformes & Synbranchiformes")+
+  xlab(NULL)+
+  geom_text(aes(y=9,x=0.52,label=paste('C'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+Cichliformes<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Per,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Per,x=factor(Status)))+
+  ylab("% Cichliformes")+
+  xlab(NULL)+
+  geom_text(aes(y=42,x=0.52,label=paste('D'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+Siluriformes<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Sil,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Sil,x=factor(Status)))+
+  ylab("% Siluriformes")+
+  xlab(NULL)+
+  geom_text(aes(y=17,x=0.52,label=paste('E'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
 png("figures/Supplementary Figure 5.png",units="cm",width=16,height=12,res=600)
-par(mfrow=c(2,3),mar=c(3,4,2,2))
-boxplot(X.Cha~factor(Status),data=abdOrd,xlab=NULL,ylab="% Characiformes",cex.axis=0.8,cex.lab=0.8)
-text(0.52,52,paste('A'))
-boxplot(X.Cyp~factor(Status),data=abdOrd,xlab=NULL,ylab="% Cyprinodontiformes",cex.axis=0.8,cex.lab=0.8)
-text(0.52,69,paste('B'))
-boxplot(X.Gym.Syn~factor(Status),data=abdOrd,xlab=NULL,ylab="% Gymnotiformes+Synbranchiformes",cex.axis=0.8,cex.lab=0.8)
-text(0.52,9,paste('C'))
-boxplot(X.Per~factor(Status),data=abdOrd,xlab=NULL,ylab="% Cichliformes",cex.axis=0.8,cex.lab=0.8)
-text(0.52,42,paste('D'))
-boxplot(X.Sil~factor(Status),data=abdOrd,xlab=NULL,ylab="% Siluriformes",cex.axis=0.8,cex.lab=0.8)
-text(0.52,17,paste('E'))
+grid.arrange(Characiformes,Cyprinodontiformes,Gymnotiformes,Cichliformes,
+             Siluriformes)
 dev.off()
+
 
 # Supplementary Figure 6 #
+fric<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FRic,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FRic,x=factor(groups$Status)))+
+  ylab("Functional Richness")+
+  xlab(NULL)+
+  geom_text(aes(y=0.56,x=0.52,label=paste('A'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+fdiv<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FDiv,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FDiv,x=factor(groups$Status)))+
+  ylab("Functional Divergence")+
+  xlab(NULL)+
+  geom_text(aes(y=0.874,x=0.52,label=paste('B'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+feve<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FEve,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FEve,x=factor(groups$Status)))+
+  ylab("Functional Evenness")+
+  xlab(NULL)+
+  geom_text(aes(y=0.75,x=0.52,label=paste('C'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+fdis<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FDis,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FDis,x=factor(groups$Status)))+
+  ylab("Functional Dispersion")+
+  xlab(NULL)+
+  geom_text(aes(y=0.6,x=0.52,label=paste('D'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+fori<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FOri,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FOri,x=factor(groups$Status)))+
+  ylab("Functional Originality")+
+  xlab(NULL)+
+  geom_text(aes(y=0.357,x=0.52,label=paste('E'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+fspe<-ggplot()+
+  geom_boxplot(mapping=aes(y=funcdiv$FSpe,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funcdiv$FSpe,x=factor(groups$Status)))+
+  ylab("Functional Specialization")+
+  xlab(NULL)+
+  geom_text(aes(y=0.55,x=0.52,label=paste('F'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
 png("figures/Supplementary Figure 6.png",units="cm",width=16,height=18,res=600)
-par(mfrow=c(3,2),mar=c(3,4,2,2))
-boxplot(funcdiv$FRic~groups$Status,xlab=NULL,ylab="Functional Richness",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.56,paste('A'))
-boxplot(funcdiv$FDiv~groups$Status,xlab=NULL,ylab="Functional Divergence",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.874,paste('B'))
-boxplot(funcdiv$FEve~groups$Status,xlab=NULL,ylab="Functional Evenness",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.75,paste('C'))
-boxplot(funcdiv$FDis~groups$Status,xlab=NULL,ylab="Functional Dispersion",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.6,paste('D'))
-boxplot(funcdiv$FOri~groups$Status,xlab=NULL,ylab="Functional Originality",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.357,paste('E'))
-boxplot(funcdiv$FSpe~groups$Status,xlab=NULL,ylab="Functional Specialization",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.55,paste('F'))
+grid.arrange(fric,fdiv,feve,fdis,fori,fspe)
 dev.off()
 
+
+
 # Supplementary Figure 7 #
+PC1<-ggplot()+
+  geom_boxplot(mapping=aes(y=funccomp$FIde_PC1,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funccomp$FIde_PC1,x=factor(groups$Status)))+
+  ylab("CWM (PC1)")+
+  xlab(NULL)+
+  geom_text(aes(y=0.073,x=0.52,label=paste('A'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+PC2<-ggplot()+
+  geom_boxplot(mapping=aes(y=funccomp$FIde_PC2,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funccomp$FIde_PC2,x=factor(groups$Status)))+
+  ylab("CWM (PC2)")+
+  xlab(NULL)+
+  geom_text(aes(y=0.1815,x=0.52,label=paste('B'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+PC3<-ggplot()+
+  geom_boxplot(mapping=aes(y=funccomp$FIde_PC3,x=factor(groups$Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=funccomp$FIde_PC3,x=factor(groups$Status)))+
+  ylab("CWM (PC3)")+
+  xlab(NULL)+
+  geom_text(aes(y=-0.007,x=0.52,label=paste('C'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 6, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
 png("figures/Supplementary Figure 7.png",units="cm",width = 16,height=8,res=600)
-par(mfrow=c(1,3),mar=c(4,4,2,2))
-boxplot(funccomp$FIde_PC1~groups$Status,xlab=NULL,ylab="CWM (PC1)",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.073,paste('A'))
-boxplot(funccomp$FIde_PC2~groups$Status,xlab=NULL,ylab="CWM (PC2)",cex.axis=0.8,cex.lab=0.8)
-text(0.52,0.1815,paste('B'))
-boxplot(funccomp$FIde_PC3~groups$Status,xlab=NULL,ylab="CWM (PC3)",cex.axis=0.8,cex.lab=0.8)
-text(0.52,-0.007,paste('C'))
+grid.arrange(PC1,PC2,PC3,nrow=1)
 dev.off()
 
 
@@ -715,11 +858,36 @@ dev.off()
 # Richness effects on FRic and FOri #
 png("figures/Supplementary Figure 8.png",units="cm",width = 16,height=10,res=600)
 par(mfrow=c(1,2),mar=c(4,4,2,2))
-plot(funcdiv$FOri~S,xlab="Species Richness",ylab="Functional Originality")
+plot(funcdiv$FOri~S,xlab="Species Richness",ylab="Functional Originality",
+     pch=16,col=alpha(c("red","red","red","red","red","blue","blue","blue",
+                        "blue","blue"),0.6))
 text(6.2,0.36,paste('B'))
-plot(funcdiv$FRic~S,xlab="Species Richness",ylab="Functional Richness")
+plot(funcdiv$FRic~S,xlab="Species Richness",ylab="Functional Richness",
+     pch=16,col=alpha(c("red","red","red","red","red","blue","blue","blue",
+                  "blue","blue"),0.6))
 text(6.2,0.57,paste('A'))
 dev.off()
 
 summary(lm(funcdiv$FRic~S))
 summary(lm(funcdiv$FOri~S))
+
+
+# Figure 2 #
+Siluriformes_main<-ggplot(data=abdOrd)+
+  geom_boxplot(mapping=aes(y=X.Sil,x=factor(Status)),fill="grey")+
+  geom_jitter(mapping=aes(y=X.Sil,x=factor(Status)))+
+  ylab("% Siluriformes")+
+  xlab(NULL)+
+  geom_text(aes(y=17,x=0.52,label=paste('B'),hjust=0.5,vjust=2.1),size=3)+
+  theme(panel.background = element_rect(fill = "white", colour = "black", size = 0.5), # opcoes graficas
+        panel.grid.major = element_line(colour = NA),
+        panel.grid.minor = element_line(colour = NA),
+        axis.text = element_text(colour = "black", size = 6),
+        axis.title = element_text(colour = "black", size = 8, face = "bold"),
+        legend.title = element_blank(),
+        legend.background = element_rect(fill = "white"),
+        legend.text = element_text(face = "bold", colour = "black", size = 5))
+
+png("figures/Figure 2.png",units="cm",width = 18,height=10,res=600)
+grid.arrange(Richness,Siluriformes_main,nrow=1)
+dev.off()
