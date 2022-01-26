@@ -30,10 +30,10 @@ abdOrd=cbind(abund_ord, groups)
 
 # Levene test for taxonomic composition
 boot.t.test(abdOrd$X.Cha[1:5],abdOrd$X.Cha[6:9])
-boot.t.test(abdOrd$X.Cyp[1:5],abdOrd$X.Cha[6:9])
-boot.t.test(abdOrd$X.Per[1:5],abdOrd$X.Cha[6:9])
-boot.t.test(abdOrd$X.Sil[1:5],abdOrd$X.Cha[6:9])
-boot.t.test(abdOrd$X.Gym.Syn[1:5],abdOrd$X.Cha[6:9])
+boot.t.test(abdOrd$X.Cyp[1:5],abdOrd$X.Cyp[6:9])
+boot.t.test(abdOrd$X.Per[1:5],abdOrd$X.Per[6:9])
+boot.t.test(abdOrd$X.Sil[1:5],abdOrd$X.Sil[6:9])
+boot.t.test(abdOrd$X.Gym.Syn[1:5],abdOrd$X.Gym.Syn[6:9])
 
 par(mfrow=c(2,3))
 boxplot(X.Cha~factor(Status), data=abdOrd, ylab="%Cha", outline=F, cex.axis=1.5, cex.lab=1.5)
@@ -587,7 +587,7 @@ boot.t.test(funccomp$FIde_PC3[1:5],funccomp$FIde_PC3[6:9])
 
 # Supplementary Figure 4 #
 Richness<-ggplot(data=GerTax2)+
-  geom_boxplot(mapping=aes(y=S,x=factor(Status)),fill="grey")+
+  geom_boxplot(mapping=aes(y=S,x=factor(Status)),fill="grey",outlier.shape = NA, coef = 0)+
   geom_jitter(mapping=aes(y=S,x=factor(Status)))+
   ylab("Richness")+
   xlab(NULL)+
@@ -600,6 +600,7 @@ Richness<-ggplot(data=GerTax2)+
         legend.title = element_blank(),
         legend.background = element_rect(fill = "white"),
         legend.text = element_text(face = "bold", colour = "black", size = 5))
+Richness
 
 Shannon<-ggplot(data=GerTax2)+
   geom_boxplot(mapping=aes(y=H,x=factor(Status)),fill="grey")+
@@ -874,7 +875,7 @@ summary(lm(funcdiv$FOri~S))
 
 # Figure 2 #
 Siluriformes_main<-ggplot(data=abdOrd)+
-  geom_boxplot(mapping=aes(y=X.Sil,x=factor(Status)),fill="grey")+
+  geom_boxplot(mapping=aes(y=X.Sil,x=factor(Status)),fill="grey",outlier.shape = NA, coef = 0)+
   geom_jitter(mapping=aes(y=X.Sil,x=factor(Status)))+
   ylab("% Siluriformes")+
   xlab(NULL)+
